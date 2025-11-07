@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diffy - Text Comparison Tool</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <div class="app">
+      <header>
+        <h1>Diffy</h1>
+        <p class="subtitle">Compare text with ease</p>
+      </header>
+
+      <main class="container">
+        <!-- Results Area - Shows at top when comparison is done -->
+        <div id="results-container" class="results-container" style="display: none;">
+          <div class="results-header">
+            <h3>Comparison Results</h3>
+            <div class="navigation">
+              <button id="prev-diff" class="nav-btn" title="Previous difference">
+                <span>←</span>
+              </button>
+              <span id="diff-counter" class="diff-counter">0 of 0</span>
+              <button id="next-diff" class="nav-btn" title="Next difference">
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+          <div class="results-panels">
+            <div class="result-panel">
+              <div class="result-panel-header">
+                <h4>Original (with deletions)</h4>
+              </div>
+              <div id="results-left" class="results"></div>
+            </div>
+            <div class="result-panel">
+              <div class="result-panel-header">
+                <h4>Modified (with additions)</h4>
+              </div>
+              <div id="results-right" class="results"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input Section - Pushed to bottom when results show -->
+        <div class="input-section">
+          <!-- Text Manipulation Tools -->
+          <div class="toolbar">
+            <button id="to-lowercase" class="tool-btn" title="Convert to lowercase">
+              <span>Aa</span> Lowercase
+            </button>
+            <button id="sort-lines" class="tool-btn" title="Sort lines alphabetically">
+              <span>↕</span> Sort Lines
+            </button>
+            <button id="remove-whitespace" class="tool-btn" title="Remove excess whitespace">
+              <span>⎵</span> Trim Spaces
+            </button>
+            <button id="replace-linebreaks" class="tool-btn" title="Replace line breaks with spaces">
+              <span>↩</span> Remove Breaks
+            </button>
+          </div>
+
+          <!-- Text Input Areas -->
+          <div class="text-panels">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Original Text</h3>
+                <span class="char-count" id="left-count">0 characters</span>
+              </div>
+              <textarea
+                id="text-left"
+                class="text-input"
+                placeholder="Paste your original text here..."
+                spellcheck="false"
+              ></textarea>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Modified Text</h3>
+                <span class="char-count" id="right-count">0 characters</span>
+              </div>
+              <textarea
+                id="text-right"
+                class="text-input"
+                placeholder="Paste your modified text here..."
+                spellcheck="false"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button id="compare-btn" class="btn btn-primary">
+              <span>🔍</span> Compare
+            </button>
+            <button id="load-test-data-btn" class="btn btn-secondary">
+              <span>📝</span> Load Test Data
+            </button>
+            <button id="switch-btn" class="btn btn-secondary">
+              <span>⇄</span> Switch
+            </button>
+            <button id="clear-btn" class="btn btn-secondary">
+              <span>✕</span> Clear All
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
