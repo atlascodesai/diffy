@@ -160,45 +160,30 @@ jobs:
           echo "X86_64_SHA=$(cut -d' ' -f1 x86_64.sha256)" >> $GITHUB_OUTPUT
           echo "AARCH64_SHA=$(cut -d' ' -f1 aarch64.sha256)" >> $GITHUB_OUTPUT
 
-      - name: Update formula
+      - name: Update cask
         run: |
-          cat > homebrew-diffy/Formula/diffy.rb << 'EOF'
-          class Diffy < Formula
-            desc "A modern, native diff tool for macOS"
-            homepage "https://github.com/atlascodesai/diffy"
+          cat > homebrew-diffy/Casks/diffy.rb << 'EOF'
+          cask "diffy" do
             version "${{ steps.version.outputs.VERSION }}"
-            license "MIT"
+            sha256 arm:   "${{ steps.sha256.outputs.AARCH64_SHA }}",
+                   intel: "${{ steps.sha256.outputs.X86_64_SHA }}"
 
-            on_macos do
-              if Hardware::CPU.arm?
-                url "https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-aarch64-apple-darwin.tar.gz"
-                sha256 "${{ steps.sha256.outputs.AARCH64_SHA }}"
-              else
-                url "https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-x86_64-apple-darwin.tar.gz"
-                sha256 "${{ steps.sha256.outputs.X86_64_SHA }}"
-              end
-            end
+            arch arm: "aarch64", intel: "x86_64"
 
-            def install
-              prefix.install "Diffy.app"
-              bin.install_symlink "#{prefix}/Diffy.app/Contents/MacOS/diffy"
-            end
+            url "https://github.com/atlascodesai/diffy/releases/download/v#{version}/diffy-#{arch}-apple-darwin.tar.gz"
+            name "Diffy"
+            desc "Modern, native diff tool for macOS"
+            homepage "https://github.com/atlascodesai/diffy"
 
-            def caveats
-              <<~EOS
-                Diffy has been installed as an application.
+            app "Diffy.app"
 
-                To open the app:
-                  open -a Diffy
+            binary "#{appdir}/Diffy.app/Contents/MacOS/diffy"
 
-                Or run from terminal:
-                  diffy
-              EOS
-            end
-
-            test do
-              assert_predicate prefix/"Diffy.app/Contents/MacOS/diffy", :exist?
-            end
+            zap trash: [
+              "~/Library/Application Support/com.atlascodesai.diffy",
+              "~/Library/Caches/com.atlascodesai.diffy",
+              "~/Library/Preferences/com.atlascodesai.diffy.plist",
+            ]
           end
           EOF
 
@@ -207,6 +192,6 @@ jobs:
           cd homebrew-diffy
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/diffy.rb
+          git add Casks/diffy.rb
           git commit -m "Update diffy to v${{ steps.version.outputs.VERSION }}"
           git push
