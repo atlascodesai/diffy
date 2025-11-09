@@ -1,6 +1,6 @@
 [package]
 name = "diffy"
-version = "0.1.0"
+version = "0.1.1"
 description = "A modern, native diff tool for macOS"
 authors = ["atlascodesai"]
 edition = "2021"
