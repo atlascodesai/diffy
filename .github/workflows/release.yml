@@ -1,0 +1,163 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-13
+            target: x86_64-apple-darwin
+          - runner: macos-14
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Tauri app
+        run: npm run tauri build
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Package app
+        run: |
+          tar -czf diffy-${{ matrix.target }}.tar.gz -C src-tauri/target/release/bundle/macos Diffy.app
+          shasum -a 256 diffy-${{ matrix.target }}.tar.gz > diffy-${{ matrix.target }}.tar.gz.sha256
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: diffy-${{ matrix.target }}
+          path: |
+            diffy-${{ matrix.target }}.tar.gz
+            diffy-${{ matrix.target }}.tar.gz.sha256
+
+  create-release:
+    needs: build-macos
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure
+        run: ls -R artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/diffy-x86_64-apple-darwin/diffy-x86_64-apple-darwin.tar.gz
+            artifacts/diffy-x86_64-apple-darwin/diffy-x86_64-apple-darwin.tar.gz.sha256
+            artifacts/diffy-aarch64-apple-darwin/diffy-aarch64-apple-darwin.tar.gz
+            artifacts/diffy-aarch64-apple-darwin/diffy-aarch64-apple-darwin.tar.gz.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-homebrew-formula:
+    needs: create-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout homebrew-diffy
+        uses: actions/checkout@v4
+        with:
+          repository: atlascodesai/homebrew-diffy
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-diffy
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download SHA256 files
+        run: |
+          curl -sL https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-x86_64-apple-darwin.tar.gz.sha256 -o x86_64.sha256
+          curl -sL https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-aarch64-apple-darwin.tar.gz.sha256 -o aarch64.sha256
+
+      - name: Extract SHA256 hashes
+        id: sha256
+        run: |
+          echo "X86_64_SHA=$(cut -d' ' -f1 x86_64.sha256)" >> $GITHUB_OUTPUT
+          echo "AARCH64_SHA=$(cut -d' ' -f1 aarch64.sha256)" >> $GITHUB_OUTPUT
+
+      - name: Update formula
+        run: |
+          cat > homebrew-diffy/Formula/diffy.rb << 'EOF'
+          class Diffy < Formula
+            desc "A modern, native diff tool for macOS"
+            homepage "https://github.com/atlascodesai/diffy"
+            version "${{ steps.version.outputs.VERSION }}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-aarch64-apple-darwin.tar.gz"
+                sha256 "${{ steps.sha256.outputs.AARCH64_SHA }}"
+              else
+                url "https://github.com/atlascodesai/diffy/releases/download/v${{ steps.version.outputs.VERSION }}/diffy-x86_64-apple-darwin.tar.gz"
+                sha256 "${{ steps.sha256.outputs.X86_64_SHA }}"
+              end
+            end
+
+            def install
+              prefix.install "Diffy.app"
+              bin.install_symlink "#{prefix}/Diffy.app/Contents/MacOS/diffy"
+            end
+
+            def caveats
+              <<~EOS
+                Diffy has been installed as an application.
+
+                To open the app:
+                  open -a Diffy
+
+                Or run from terminal:
+                  diffy
+              EOS
+            end
+
+            test do
+              assert_predicate prefix/"Diffy.app/Contents/MacOS/diffy", :exist?
+            end
+          end
+          EOF
+
+      - name: Commit and push
+        run: |
+          cd homebrew-diffy
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/diffy.rb
+          git commit -m "Update diffy to v${{ steps.version.outputs.VERSION }}"
+          git push
