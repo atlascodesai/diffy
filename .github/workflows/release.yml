@@ -32,8 +32,57 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Import Code Signing Certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Import certificate from secrets
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # Create temporary keychain
+          security create-keychain -p "$CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+          # Enable codesigning from a non user interactive shell
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$CERTIFICATE_PASSWORD" $KEYCHAIN_PATH
+
       - name: Build Tauri app
         run: npm run tauri build
+        env:
+          APPLE_SIGNING_IDENTITY: "Developer ID Application: Atlas Codes LTD (599WAZ6282)"
+
+      - name: Code Sign App
+        run: |
+          codesign --force --options runtime --deep --sign "Developer ID Application: Atlas Codes LTD (599WAZ6282)" src-tauri/target/release/bundle/macos/Diffy.app
+
+      - name: Notarize App
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          # Create a zip for notarization
+          ditto -c -k --keepParent src-tauri/target/release/bundle/macos/Diffy.app Diffy.zip
+
+          # Submit for notarization
+          xcrun notarytool submit Diffy.zip \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple src-tauri/target/release/bundle/macos/Diffy.app
 
       - name: Get version
         id: version
