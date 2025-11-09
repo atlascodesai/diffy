@@ -13,7 +13,6 @@ let diffCounter: HTMLElement;
 let currentDiffIndex = 0;
 let totalDiffs = 0;
 let isLoadingFromHistory = false;
-let currentHistoryId: string | null = null;
 
 // Initialize app
 window.addEventListener("DOMContentLoaded", () => {
@@ -826,7 +825,6 @@ function loadHistoryItem(id: string) {
   if (!item) return;
 
   isLoadingFromHistory = true;
-  currentHistoryId = id;
 
   textLeft.value = item.leftText;
   textRight.value = item.rightText;
@@ -842,7 +840,6 @@ function loadHistoryItem(id: string) {
 
 // Start a new diff (clear everything)
 function newDiff() {
-  currentHistoryId = null;
   clearAll();
 }
 
