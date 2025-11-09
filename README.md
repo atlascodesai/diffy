@@ -16,11 +16,15 @@ A modern, native diff tool for macOS built with Tauri and TypeScript.
 
 ### Homebrew (Recommended)
 
+Install with a single command:
+
 ```bash
 brew install --cask atlascodesai/diffy/diffy
 ```
 
-Or tap first, then install:
+This automatically taps the repository and installs Diffy. No separate tap command needed!
+
+**Alternative**: If you prefer to tap first:
 
 ```bash
 brew tap atlascodesai/diffy
@@ -29,7 +33,13 @@ brew install --cask diffy
 
 ### Manual Installation
 
-Download the latest release from [GitHub Releases](https://github.com/atlascodesai/diffy/releases) and drag Diffy.app to your Applications folder.
+1. Download the latest release for your architecture:
+   - **Apple Silicon (M1/M2/M3)**: [diffy-aarch64-apple-darwin.tar.gz](https://github.com/atlascodesai/diffy/releases/latest)
+   - **Intel**: [diffy-x86_64-apple-darwin.tar.gz](https://github.com/atlascodesai/diffy/releases/latest)
+
+2. Extract the archive and drag `Diffy.app` to your Applications folder
+
+3. On first launch, if you see a security warning, go to **System Settings → Privacy & Security** and click "Open Anyway"
 
 ## Usage
 
