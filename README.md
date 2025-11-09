@@ -1,5 +1,9 @@
 # Diffy
 
+<img width="256" height="256" alt="128x128@2x" src="https://github.com/user-attachments/assets/73d89376-6e51-4c00-a785-a5dd8c931eb0" />
+
+<img width="1792" height="1042" alt="image" src="https://github.com/user-attachments/assets/719d45dd-1ac7-47a9-8a4e-bb1f5b7630ba" />
+
 A modern, native diff tool for macOS built with Tauri and TypeScript.
 
 ## Features
