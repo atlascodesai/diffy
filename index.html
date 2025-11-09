@@ -11,9 +11,182 @@
   <body>
     <div class="app">
       <header>
-        <h1>Diffy</h1>
-        <p class="subtitle">Compare text with ease</p>
+        <button id="toggle-history" class="history-toggle-btn" style="display: none;" title="History">
+          <span>☰</span>
+        </button>
+        <div class="header-left">
+          <div class="header-title">
+            <img src="/diffy-logo.png" alt="Diffy Logo" class="app-logo" />
+            <h1>Diffy</h1>
+          </div>
+          <p class="subtitle">Compare text with ease</p>
+        </div>
+        <div class="header-actions">
+          <button id="new-diff-btn" class="new-diff-btn" title="New Diff (Cmd+N)">
+            <span>+</span>
+          </button>
+          <button id="settings-btn" class="settings-btn" title="Settings">
+            <span>⚙</span>
+          </button>
+        </div>
       </header>
+
+      <!-- Settings Modal -->
+      <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Settings</h2>
+            <button id="close-settings" class="close-btn">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="setting-item">
+              <label class="setting-label">
+                <span class="setting-title">Enable Diff History</span>
+                <span class="setting-description">Save and archive all comparisons</span>
+              </label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="enable-history" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="setting-item" id="retention-setting" style="display: none;">
+              <label class="setting-label">
+                <span class="setting-title">Retention Policy</span>
+                <span class="setting-description">How long to keep diff history</span>
+              </label>
+              <select id="retention-policy" class="setting-select">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="0">Forever</option>
+              </select>
+            </div>
+            <div class="setting-divider"></div>
+            <div class="setting-item setting-link" id="show-shortcuts">
+              <div class="setting-label">
+                <span class="setting-title">Keyboard Shortcuts</span>
+                <span class="setting-description">View all available shortcuts</span>
+              </div>
+              <span class="setting-arrow">→</span>
+            </div>
+            <div class="setting-item setting-link" id="show-acknowledgements">
+              <div class="setting-label">
+                <span class="setting-title">Acknowledgements</span>
+                <span class="setting-description">Open source libraries and credits</span>
+              </div>
+              <span class="setting-arrow">→</span>
+            </div>
+            <div class="setting-divider"></div>
+            <div class="version-info">
+              <span class="version-label">Version</span>
+              <span class="version-number">0.1.0</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="save-settings" class="btn btn-primary">Save</button>
+            <button id="cancel-settings" class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts Modal -->
+      <div id="shortcuts-modal" class="modal" style="display: none;">
+        <div class="modal-content shortcuts-modal-content">
+          <div class="modal-header">
+            <h2>Keyboard Shortcuts</h2>
+            <button id="close-shortcuts" class="close-btn">×</button>
+          </div>
+          <div class="modal-body shortcuts-body">
+            <div class="shortcuts-section">
+              <h3>Comparison Actions</h3>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>⌘</kbd> + <kbd>Enter</kbd> or <kbd>⌘</kbd> + <kbd>R</kbd></span>
+                <span class="shortcut-desc">Run comparison</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>⌘</kbd> + <kbd>N</kbd></span>
+                <span class="shortcut-desc">Start new diff (clear all)</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>⌃</kbd> + <kbd>⌥</kbd> + <kbd>S</kbd></span>
+                <span class="shortcut-desc">Switch left and right text</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>⌃</kbd> + <kbd>⌥</kbd> + <kbd>R</kbd></span>
+                <span class="shortcut-desc">Clear all text and results</span>
+              </div>
+            </div>
+            <div class="shortcuts-section">
+              <h3>Navigation</h3>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>←</kbd> / <kbd>→</kbd> buttons</span>
+                <span class="shortcut-desc">Navigate between differences</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>⌘</kbd> + <kbd>H</kbd></span>
+                <span class="shortcut-desc">Toggle history sidebar</span>
+              </div>
+              <div class="shortcut-item">
+                <span class="shortcut-keys"><kbd>ESC</kbd></span>
+                <span class="shortcut-desc">Close history sidebar</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer shortcuts-footer">
+            <label class="dont-show-again">
+              <input type="checkbox" id="dont-show-shortcuts" />
+              <span>Don't show on startup</span>
+            </label>
+            <button id="close-shortcuts-btn" class="btn btn-primary">Got it!</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acknowledgements Modal -->
+      <div id="acknowledgements-modal" class="modal" style="display: none;">
+        <div class="modal-content acknowledgements-modal-content">
+          <div class="modal-header">
+            <h2>Acknowledgements</h2>
+            <button id="close-acknowledgements" class="close-btn">×</button>
+          </div>
+          <div class="modal-body ack-modal-body">
+            <div class="ack-item">
+              <h3>diff.js</h3>
+              <p>A JavaScript text differencing library by Kevin Decker.</p>
+              <a href="https://github.com/kpdecker/jsdiff" class="ack-link">github.com/kpdecker/jsdiff</a>
+            </div>
+            <div class="ack-item">
+              <h3>Tauri</h3>
+              <p>Build smaller, faster, and more secure desktop applications.</p>
+              <a href="https://tauri.app" class="ack-link">tauri.app</a>
+            </div>
+            <div class="ack-item">
+              <h3>TypeScript</h3>
+              <p>Typed superset of JavaScript that compiles to plain JavaScript.</p>
+              <a href="https://www.typescriptlang.org" class="ack-link">typescriptlang.org</a>
+            </div>
+            <div class="ack-item">
+              <h3>Vite</h3>
+              <p>Next generation frontend tooling.</p>
+              <a href="https://vitejs.dev" class="ack-link">vitejs.dev</a>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="close-acknowledgements-btn" class="btn btn-primary">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Sidebar -->
+      <div id="history-sidebar" class="history-sidebar">
+        <div class="sidebar-header">
+          <h3>Diff History</h3>
+          <button id="close-history" class="close-btn">×</button>
+        </div>
+        <div class="sidebar-content" id="history-list">
+          <p class="empty-state">No history yet. Enable history in settings to start saving comparisons.</p>
+        </div>
+      </div>
 
       <main class="container">
         <!-- Results Area - Shows at top when comparison is done -->
@@ -69,27 +242,49 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>Original Text</h3>
-                <span class="char-count" id="left-count">0 characters</span>
+                <div class="panel-header-right">
+                  <button id="copy-left-btn" class="copy-btn" title="Copy to clipboard">
+                    <span>📋</span> Copy
+                  </button>
+                  <span class="char-count" id="left-count">0 characters</span>
+                </div>
               </div>
               <textarea
                 id="text-left"
                 class="text-input"
-                placeholder="Paste your original text here..."
+                placeholder="Paste your original text here or drag & drop a file..."
                 spellcheck="false"
               ></textarea>
+              <div class="drop-zone" id="drop-zone-left">
+                <div class="drop-zone-content">
+                  <span class="drop-icon">📁</span>
+                  <p>Drop file here</p>
+                </div>
+              </div>
             </div>
 
             <div class="panel">
               <div class="panel-header">
                 <h3>Modified Text</h3>
-                <span class="char-count" id="right-count">0 characters</span>
+                <div class="panel-header-right">
+                  <button id="copy-right-btn" class="copy-btn" title="Copy to clipboard">
+                    <span>📋</span> Copy
+                  </button>
+                  <span class="char-count" id="right-count">0 characters</span>
+                </div>
               </div>
               <textarea
                 id="text-right"
                 class="text-input"
-                placeholder="Paste your modified text here..."
+                placeholder="Paste your modified text here or drag & drop a file..."
                 spellcheck="false"
               ></textarea>
+              <div class="drop-zone" id="drop-zone-right">
+                <div class="drop-zone-content">
+                  <span class="drop-icon">📁</span>
+                  <p>Drop file here</p>
+                </div>
+              </div>
             </div>
           </div>
 
